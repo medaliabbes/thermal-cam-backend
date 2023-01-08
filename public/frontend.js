@@ -159,6 +159,6 @@ function init()
 
     setInterval(getState , 1000) ;
 
-    setInterval(loadImage,200 );
+    setInterval(loadImage, 400 );
 
 }
