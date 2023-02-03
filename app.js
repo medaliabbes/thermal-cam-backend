@@ -118,6 +118,7 @@ var server = net.createServer();
 server.on('connection', handleConnection);
 
 const tcpPort = 1337 ;
+const tcpAddress = '192.168.24.100' ;
 server.listen(tcpPort, ip , function(){
     console.log(`TCP server on  ${ip}:${tcpPort} `) ;
 });
@@ -214,6 +215,11 @@ var state = -1 ;
 var mystring = "";
 var imagebegin = false ;
 var array = [] ;
+
+const fs = require('fs');
+
+var index = 0 ;
+const filename = "lepton_data_"
 	
 function onConnData(d) {  
 
@@ -223,7 +229,7 @@ function onConnData(d) {
 	{
 		case -1 :
 		{
-			
+			// this code is in execution 
 			for(let i = 0 ; i< d.length ; i++)
 			{
 				if(d[i] == 123 && imagebegin == false )
@@ -246,7 +252,12 @@ function onConnData(d) {
 					j=0 ;
 					var obj = {} ;
 					obj["data"] = getMatrix (array) ;
-					Camdata = JSON.stringify(obj) ;
+					Camdata = JSON.stringify(obj)   ;
+					fs.appendFile('./mydata/'+filename+index+'.json', Camdata, 'utf8', function(err){
+						//console.log("file saved :" , err);
+					});
+					
+					index++ ;
 					//
 				}
 					
@@ -296,44 +307,7 @@ function onConnData(d) {
 		}
 		
 	}
-	//my_image.concat( d );
 	
-	
-	
-	
-	
-    /**
-     * check the data validity 
-     */
-	/*
-	var mydata = String.fromCharCode(...d) ;
-	for(let i = 0 ;i < mydata.length ;i++)
-	{
-		camdata1 += mydata[i] ;
-		if(mydata[i] == '}')
-		{
-			if(isJsonString(camdata1) == true )
-			{
-				console.log("length :" , camdata1.length ) ;
-				Camdata = camdata1 ;
-				camdata1 = "";
-				console.log("Frame recv") ;
-				test = true ;
-			}
-			else
-			{
-
-			}
-		}
-		
-	}
-	*/
-	/*
-	[18:50] Manish Shukla
-    deviceserverside
-	​[18:50] Manish Shukla
-	OceanFriends2023!
-	*/
 	
 }
 
