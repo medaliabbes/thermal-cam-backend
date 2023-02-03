@@ -1,12 +1,17 @@
 
-var net = require('net');
+var net       = require('net');
 const express = require('express') ;
-const app = express() ;
-const math = require('mathjs') ;
+const app     = express() ;
+const math    = require('mathjs') ;
+const fs      = require('fs');
+const zip = require('express-zip');
+
+
 const port = 3000
 
 
 
+//this may prevent scalling
 var Camdata ;
 /**
  * Object {
@@ -32,6 +37,66 @@ app.set('view engine', 'ejs') ;
 app.get('/', (req, res) => {
   res.render("index" ) ;
 });
+
+
+const folderPath = "./mydata";
+
+
+app.get('/listfiles' , function(req , res) {
+	    const paths = fs.readdirSync(folderPath); 
+		console.log(paths.length) ;
+		console.log(typeof(paths)) ;
+		res.render("fileslist",{'myFilesList': paths });
+		//res.send(paths.toString()) ;
+	});
+	
+	
+// GET request for single file
+app.get('/files/:filename',function(req,res) 
+{
+	
+	if( req.params.filename === "all" )
+	{
+		
+		const listOfFiles = fs.readdirSync(folderPath); 
+		var myList = [] ;
+		
+		for(let i = 0 ;i<listOfFiles.length ; i++)
+		{
+			var myObject = new Object() ;
+			myObject['path'] = folderPath + '/' + listOfFiles[i] ;
+			myObject['name'] = listOfFiles[i] ;
+			myList.push(myObject) ;
+		}
+		// zip method which take file path
+		// and name as objects
+		res.zip(myList);
+		/*res.zip([
+			   { path: folderPath+'/multiple_one_gfg.txt',
+				   name: 'one_gfg.txt'},
+			   { path: folderPath+'/multiple_two_gfg.txt',
+				   name: 'two_gfg.txt'},
+			   { path: folderPath+'/multiple_three_gfg.txt',
+				name: 'three_gfg.txt'}
+		])*/
+	}
+	else
+	{
+		var file_path = folderPath +'/' +  req.params.filename ;
+		console.log('single file');
+		console.log("file path " , file_path ) ;
+		// Download function provided by express
+		//res.send(file_path);
+		res.download(file_path, function(err) {
+			if(err) {
+				console.log(err);
+			}
+		});
+	}
+	
+});
+
+
 
 app.get('/startRecording' ,(req,res) =>{
 
@@ -216,7 +281,7 @@ var mystring = "";
 var imagebegin = false ;
 var array = [] ;
 
-const fs = require('fs');
+
 
 var index = 0 ;
 const filename = "lepton_data_"
