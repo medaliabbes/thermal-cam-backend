@@ -5,6 +5,7 @@ const app     = express() ;
 const math    = require('mathjs') ;
 const fs      = require('fs');
 const zip = require('express-zip');
+var udp = require('dgram');
 
 
 const port = 3000
@@ -178,8 +179,111 @@ function isJsonString(str) {
     return true;
 }
 
-var server = net.createServer();  
+//var server = net.createServer();  
+// --------------------creating a udp server --------------------
 
+// creating a udp server
+var server = udp.createSocket('udp4');
+
+// emits when any error occurs
+server.on('error',function(error){
+  console.log('Error: ' + error);
+  server.close();
+});
+
+function getMatrix(arr)
+{
+	var matrix = [] ;
+	var arrIndex = 0;
+	
+	for(let y = 0 ;y < 120 ;y++)
+	{
+		var my = new Array() ;
+		
+		for(let x = 0 ;x<160 ;x++)
+		{
+			my[x] = arr[arrIndex] + (arr[arrIndex +1]  *256) ;
+			
+			arrIndex +=2;
+		}
+		
+		matrix[y] = my ;
+	}
+	
+	return matrix ;
+}
+
+var imagebegin = false ;
+var array = [] ;
+
+var index = 0 ;
+const filename = "lepton_data_"
+var j = 0 ;
+
+// emits on new datagram msg
+server.on('message',function(d,info){
+  //console.log('Data received from client : ' + msg.toString());
+ // console.log('Received %d bytes from %s:%d\n',msg.length, info.address, info.port);
+ 
+   SystemState.CamIsConnected = true ;
+	for(let i = 0 ; i< d.length ; i++)
+			{
+				if(d[i] == 123 && imagebegin == false )
+				{
+					console.log("start") ;
+					imagebegin = true ;
+				}
+				else if( imagebegin == true && j<160*120*2) 
+				{
+					//console.log("en") ;
+					//prepare image here 
+					array[j]  = d[i] ;
+					j++;
+				}
+				
+				else if(d[i] == 125 && imagebegin == true)
+				{
+					console.log("end") ;
+					imagebegin = false ;
+					j=0 ;
+					var obj = {} ;
+					obj["data"] = getMatrix (array) ;
+					Camdata = JSON.stringify(obj)   ;
+					//console.log(Camdata);
+					/*fs.appendFile('./mydata/'+filename+index+'.json', Camdata, 'utf8', function(err){
+						//console.log("file saved :" , err);
+					});*/
+					
+					index++ ;
+					//
+				}
+					
+			}
+});
+
+//emits when socket is ready and listening for datagram msgs
+server.on('listening',function(){
+  var address = server.address();
+  var port = address.port;
+  var family = address.family;
+  var ipaddr = address.address;
+  console.log('Server is listening at port ' + port);
+  console.log('Server ip :' + ipaddr);
+  console.log('Server is IP4/IP6 : ' + family);
+});
+
+//emits after the socket is closed using socket.close();
+server.on('close',function(){
+  console.log('Socket is closed !');
+});
+
+server.bind(1337);
+
+
+
+
+
+/*
 server.on('connection', handleConnection);
 
 const tcpPort = 1337 ;
@@ -388,3 +492,6 @@ function onConnError(err) {
    }  
 
 }
+
+
+*/

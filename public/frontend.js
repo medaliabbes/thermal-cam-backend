@@ -387,7 +387,7 @@ function loadImage() {
 
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-            //console.log(this.responseText) ;
+            //console.log("server res :" ,this.responseText) ;
             var result = JSON.parse(this.responseText);
             if(!result.data) {
                 return;
@@ -403,7 +403,7 @@ function loadImage() {
     };				
     xhttp.open("GET", host + "/getdata", true);
     xhttp.send();
-    console.log("fffff");
+    //console.log("fffff");
 }
 
 
